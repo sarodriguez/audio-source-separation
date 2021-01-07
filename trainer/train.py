@@ -91,11 +91,12 @@ class Trainer:
 
 
     def create_checkpoint(self, epoch):
-        val_loss, val_accuracy = self.evaluator.evaluate()
         utc0_now_str = datetime.datetime.utcnow().strftime('%Y-%m-%d-%H:%M:%S')
-        checkpoint_filepath = pathlib.Path(self.checkpoint_folder_path, "{}_{}_{}.pt".format(self.model_configuration_name,
-                                                                          int(epoch),
-                                                                          utc0_now_str))
+        checkpoint_filepath = pathlib.Path(self.checkpoint_folder_path,
+                                           "{}_{}_{}.pt".format(self.model_configuration_name, int(epoch),
+                                                                utc0_now_str))
+        self.log('Creating Checkpoint for Epoch {}. Checkpoint location: {}'.format(epoch, checkpoint_filepath))
+        val_loss, val_accuracy = self.evaluator.evaluate()
         torch.save({
             'epoch': epoch,
             'model_state_dict': self.model.state_dict(),
