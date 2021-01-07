@@ -53,7 +53,7 @@ class TrainMUSDB18Dataset(MUSDB18Dataset):
         :return: np.array with the raw audio waveforms
         """
         # We get a random track
-        rand_track = np.random.randint(0, len(self))
+        rand_track = np.random.randint(0, len(self.mus))
         # Then a random starting position within this random track
         rand_start = np.random.randint(0, len(self.mus[rand_track]) - self.sample_length + 1)
 
