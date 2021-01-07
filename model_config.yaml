@@ -1,0 +1,29 @@
+# This file contains all the different model configurations
+default:
+  class: ConditionedUNet
+  n_instruments: 4
+  n_input_audio_channels: 2
+  encoderdecoder_channels: [16, 32, 64, 128, 256, 512]
+  encoder_dropout: 0.9
+  encoder_batchnorm: True
+  encoder_bn_momentum: 0.9
+  encoder_activation: relu
+  encoder_filter_size: !!python/tuple [3, 3]
+  encoder_stride: !!python/tuple [1, 1]
+  encoder_padding:  !!python/tuple [1, 1]
+  decoder_dropout: 0.5
+  decoder_batchnorm: False
+  decoder_bn_momentum: 0.9
+  decoder_activations: [relu, relu, relu, relu, relu, sigmoid]
+  decoder_filter_size: !!python/tuple [3, 3]
+  decoder_stride:  !!python/tuple [1, 1]
+  decoder_padding:  !!python/tuple [1, 1]
+  decoders_with_skip_connection: [False, True, True, True, True, True]
+  film_type: complex
+  control_type: fully_connected
+  control_layer_depths: [16, 64, 256]
+  control_layer_batchnorm: True
+  control_layer_dropout: 0.5
+  control_layer_bn_momentum: 0.9
+  control_layer_activation: 'relu'
+  control_embedding_dimension: 256
