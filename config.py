@@ -38,7 +38,7 @@ class config(effortless_config.Config):
     # Specifies a device to be used if not none.
     # Make sure that GPU_DEVICE can be sent as a parameter to torch's to function - .to(GPU_DEVICE)
     GPU_DEVICE = None
-    BATCH_SIZE = 2
+    BATCH_SIZE = 8
     PREFETCH_FACTOR = None
     EPOCHS = 200
     OPTIMIZER = 'adam'
