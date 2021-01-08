@@ -49,6 +49,7 @@ class Trainer:
                                    self.device)
 
     def train(self):
+        self.log.info("------------Training Started------------")
         for epoch in range(self.epochs):  # loop over the dataset multiple times
 
             running_loss = 0.0
@@ -81,13 +82,13 @@ class Trainer:
                     self.log.info('[Epoch %d, Iter. %5d] avg. loss: %.3f' %
                           (epoch + 1, i + 1, running_loss / self.logging_frequency))
                     running_loss = 0.0
-
+                # TODO DELETE this checkpoint creation
                 self.create_checkpoint(epoch)
 
             if epoch % self.checkpoint_frequency == self.checkpoint_frequency - 1:
                 self.create_checkpoint(epoch)
         self.create_checkpoint(self.epochs)
-        self.log.info('Finished Training')
+        self.log.info('------------Training Finished------------')
 
 
     def create_checkpoint(self, epoch):
