@@ -77,7 +77,7 @@ class Trainer:
                 # print statistics
                 running_loss += loss.item()
                 self.losses.append(loss.item())
-                if i % self.logging_frequency == self.logging_frequency - 1:  # print every 2000 mini-batches
+                if i % self.logging_frequency == self.logging_frequency - 1:
                     self.log.info('[Epoch %d, Iter. %5d] avg. loss: %.3f' %
                           (epoch + 1, i + 1, running_loss / self.logging_frequency))
                     running_loss = 0.0
