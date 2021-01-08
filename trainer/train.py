@@ -96,7 +96,7 @@ class Trainer:
         checkpoint_filepath = pathlib.Path(self.checkpoint_folder_path,
                                            "{}_{}_{}.pt".format(self.model_configuration_name, int(epoch),
                                                                 utc0_now_str))
-        self.log('Creating Checkpoint for Epoch {}. Checkpoint location: {}'.format(epoch, checkpoint_filepath))
+        self.log.info('Creating Checkpoint for Epoch {}. Checkpoint location: {}'.format(epoch, checkpoint_filepath))
         val_loss, val_accuracy = self.evaluator.evaluate()
         torch.save({
             'epoch': epoch,
@@ -105,7 +105,7 @@ class Trainer:
             'val_loss': val_loss,
             'val_accuracy': val_accuracy
         }, checkpoint_filepath)
-        self.log('Checkpoint succesful for Epoch {}. Checkpoint location: {}'.format(epoch, checkpoint_filepath))
+        self.log.info('Checkpoint succesful for Epoch {}. Checkpoint location: {}'.format(epoch, checkpoint_filepath))
 
     def get_loss_historic(self):
         return self.losses
