@@ -87,6 +87,8 @@ class Trainer:
 
             if epoch % self.checkpoint_frequency == self.checkpoint_frequency - 1:
                 self.create_checkpoint(epoch)
+        if not (self.epochs % self.checkpoint_frequency == 0):
+            self.create_checkpoint(self.epochs)
         self.create_checkpoint(self.epochs)
         self.log.info('------------Training Finished------------')
 
@@ -97,15 +99,16 @@ class Trainer:
                                            "{}_{}_{}.pt".format(self.model_configuration_name, int(epoch),
                                                                 utc0_now_str))
         self.log.info('Creating Checkpoint for Epoch {}. Checkpoint location: {}'.format(epoch, checkpoint_filepath))
-        val_loss, val_accuracy = self.evaluator.evaluate()
+        val_loss, val_track_scores_df, val_scores_df = self.evaluator.evaluate()
         torch.save({
             'epoch': epoch,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
             'val_loss': val_loss,
-            'val_accuracy': val_accuracy
+            'val_track_scores_df': val_track_scores_df,
+            'val_scores_df': val_scores_df
         }, checkpoint_filepath)
-        self.log.info('Checkpoint succesful for Epoch {}. Checkpoint location: {}'.format(epoch, checkpoint_filepath))
+        self.log.info('Checkpoint successful for Epoch {}. Checkpoint location: {}'.format(epoch, checkpoint_filepath))
 
     def get_loss_historic(self):
         return self.losses

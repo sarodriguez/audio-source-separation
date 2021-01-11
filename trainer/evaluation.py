@@ -36,7 +36,8 @@ class Evaluator:
             cum_loss = sum(losses)
             self.losses.append(cum_loss)
         self.model.train()
-        return cum_loss, self.musdb18evaluator.get_results_df()
+        return cum_loss, self.musdb18evaluator.results.agg_frames_tracks_scores(), \
+               self.musdb18evaluator.results.agg_frames_scores()
 
 class MUSDB18Evaluator:
     def __init__(self, mus_db, instruments):
@@ -98,24 +99,25 @@ class MUSDB18Evaluator:
         # this means that the previous track has finished and we should calculate its results with museval
         same_instrument_mask = (instrument_ohe == self.current_instrument_ohe).all(dim=1)
         same_track_mask = (track == self.current_track)
-        if (~same_instrument_mask.any() or ~same_track_mask.any()) and self.get_current_output_length() == 0:
+        if ((~same_instrument_mask).any() or (~same_track_mask).any()) and self.get_current_output_length() == 0:
             raise Exception('Current track is empty, but received a different(new) instrument/track.')
-        elif ~same_track_mask.any():
+        elif (~same_track_mask).any():
             # Get the observations that belong to the current instrument (and track) and append them to the results
             if same_track_mask.any():
                 self.append_results_to_current_track(output[same_track_mask])
             # Retrieve the original track from musdb, generate the estimates from the model's output
             # and Evaluate the finished track
-            track = self.mus_db.tracks[self.current_track]
-            estimates = {instru: torch.cat(output_list).numpy() for instru, output_list in
+            mus_track = self.mus_db.tracks[self.current_track]
+            estimates = {instru: torch.cat(output_list).transpose(0, 1).flatten(1, 2).cpu().numpy()[:,
+                                 :len(mus_track)].T for instru, output_list in
                          self.current_output.items()}
-            self.results.add_track(museval.eval_mus_track(track, estimates))
+            self.results.add_track(museval.eval_mus_track(mus_track, estimates))
             # Reset current results
             self.reset_current_results()
             self.validate_current_track(track[~same_track_mask], instrument_ohe[~same_track_mask])
             # Get the observations that belong to the new instrument and append them to the results
             self.append_results_to_current_track(output[~same_track_mask])
-        elif ~same_instrument_mask.any():
+        elif (~same_instrument_mask).any():
             # Get the observations that belong to the current instrument and append them to the results
             if same_instrument_mask.any():
                 self.append_results_to_current_track(output[same_instrument_mask])
