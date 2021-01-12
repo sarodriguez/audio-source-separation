@@ -51,7 +51,7 @@ class Trainer:
     def train(self, verbose=False):
         self.log.info("------------Training Started------------")
         for epoch in range(self.epochs):  # loop over the dataset multiple times
-            if verbose: self.log.info("!!------------ Epoch {} ------------!!".format(epoch))
+            self.log.info("!!------------ Epoch {} ------------!!".format(epoch))
             running_loss = 0.0
             for i, data in enumerate(self.train_loader, 0):
                 # Here the inputs are the mixture track, targets are the final track and condition is the OHE instrument
