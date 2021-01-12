@@ -14,6 +14,7 @@ def main():
     log_filename = config.LOG_FILENAME
 
     log = setup_log(log_filename)
+    log.info("Started Training")
 
     # Setup datasets
     instruments = config.INSTRUMENTS
@@ -26,6 +27,10 @@ def main():
     train_dataset = TrainMUSDB18Dataset(musdbwav_path, instruments, sample_length=audio_samples_per_chunk)
     validation_dataset = TestMUSDB18Dataset(musdbwav_path, instruments, sample_length=audio_samples_per_chunk,
                                             subset_split='valid')
+    log.info("Loaded Training dataset with a total of {} samples, from the path: {}".format(len(train_dataset.mus),
+                                                                                            musdbwav_path))
+    log.info("Loaded Validation dataset with a total of {} samples, from the path: {}".format(len(train_dataset.mus),
+                                                                                              musdbwav_path))
 
     # Setup model
     model_config_path = config.MODEL_CONFIG_YAML_PATH
