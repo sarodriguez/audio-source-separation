@@ -48,7 +48,7 @@ class config(effortless_config.Config):
     LR_SCHEDULER_PARAMS = dict(T_max=EPOCHS)
     CHECKPOINT_FOLDER_PATH = r'C:\Proy\sound-source-separation\logscheckpoints'
     # How many batch iterations between one log message of the current Loss
-    LOGGING_FREQUENCY = 20000
+    LOGGING_FREQUENCY = 3000
     # How many epochs between one network backup and another
     CHECKPOINT_FREQUENCY = 100
     """
