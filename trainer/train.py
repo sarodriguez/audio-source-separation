@@ -35,7 +35,7 @@ class Trainer:
             #                                     prefetch_factor=prefetch_factor, pin_memory=True, num_workers=2)
         else:
             self.train_loader = DataLoader(train_dataset, batch_size=batch_size,
-                                           pin_memory=True, num_workers=1)
+                                           pin_memory=True, num_workers=1, drop_last=True)
             self.validation_loader = DataLoader(validation_dataset, batch_size=batch_size,
                                                 pin_memory=True, num_workers=1)
         self.train_dataset = train_dataset
@@ -48,7 +48,7 @@ class Trainer:
                                    self.instruments,
                                    self.device)
 
-    def train(self, verbose=True):
+    def train(self, verbose=False):
         self.log.info("------------Training Started------------")
         for epoch in range(self.epochs):  # loop over the dataset multiple times
             if verbose: self.log.info("!!------------ Epoch {} ------------!!".format(epoch))
@@ -88,7 +88,6 @@ class Trainer:
         if not (self.epochs % self.checkpoint_frequency) == 0:
             self.create_checkpoint(self.epochs, training_losses=self.losses)
         self.log.info('------------Training Finished------------')
-
 
     def create_checkpoint(self, epoch, training_losses=None):
         utc0_now_str = datetime.datetime.utcnow().strftime('%Y-%m-%d-%H%M')
