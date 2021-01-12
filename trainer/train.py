@@ -82,32 +82,32 @@ class Trainer:
                     self.log.info('[Epoch %d, Iter. %5d] avg. loss: %.3f' %
                           (epoch + 1, i + 1, running_loss / self.logging_frequency))
                     running_loss = 0.0
-                # TODO DELETE this checkpoint creation
-                self.create_checkpoint(epoch)
 
-            if epoch % self.checkpoint_frequency == self.checkpoint_frequency - 1:
+            if (epoch % self.checkpoint_frequency) == (self.checkpoint_frequency - 1):
                 self.create_checkpoint(epoch)
-        if not (self.epochs % self.checkpoint_frequency == 0):
-            self.create_checkpoint(self.epochs)
-        self.create_checkpoint(self.epochs)
+        if not (self.epochs % self.checkpoint_frequency) == 0:
+            self.create_checkpoint(self.epochs, training_losses=self.losses)
         self.log.info('------------Training Finished------------')
 
 
-    def create_checkpoint(self, epoch):
-        utc0_now_str = datetime.datetime.utcnow().strftime('%Y-%m-%d-%H:%M:%S')
+    def create_checkpoint(self, epoch, training_losses=None):
+        utc0_now_str = datetime.datetime.utcnow().strftime('%Y-%m-%d-%H%M')
         checkpoint_filepath = pathlib.Path(self.checkpoint_folder_path,
                                            "{}_{}_{}.pt".format(self.model_configuration_name, int(epoch),
                                                                 utc0_now_str))
         self.log.info('Creating Checkpoint for Epoch {}. Checkpoint location: {}'.format(epoch, checkpoint_filepath))
         val_loss, val_track_scores_df, val_scores_df = self.evaluator.evaluate()
-        torch.save({
+        checkpoint_dict = {
             'epoch': epoch,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
             'val_loss': val_loss,
             'val_track_scores_df': val_track_scores_df,
             'val_scores_df': val_scores_df
-        }, checkpoint_filepath)
+        }
+        if training_losses is not None:
+            checkpoint_dict['training_losses'] = training_losses
+        torch.save(checkpoint_dict, checkpoint_filepath)
         self.log.info('Checkpoint successful for Epoch {}. Checkpoint location: {}'.format(epoch, checkpoint_filepath))
 
     def get_loss_historic(self):
