@@ -50,7 +50,7 @@ class config(effortless_config.Config):
     # How many batch iterations between one log message of the current Loss
     LOGGING_FREQUENCY = 3000
     # How many epochs between one network backup and another
-    CHECKPOINT_FREQUENCY = 100
+    CHECKPOINT_FREQUENCY = 10
     """
     model parameters    
     """
