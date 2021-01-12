@@ -26,7 +26,7 @@ class Trainer:
 
         if is_device_gpu(self.device):
             # pin memory helps improving performance when loading on CPU and sending to GPU
-            self.train_loader = DataLoader(train_dataset, batch_size=batch_size, pin_memory=True)
+            self.train_loader = DataLoader(train_dataset, batch_size=batch_size, pin_memory=True, drop_last=True)
             self.validation_loader = DataLoader(validation_dataset, batch_size=batch_size, pin_memory=True)
             # Multiple workers for the dataloader
             # self.train_loader = DataLoader(train_dataset, batch_size=batch_size, prefetch_factor=prefetch_factor,
