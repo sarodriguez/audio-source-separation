@@ -84,7 +84,7 @@ def main():
     agg_track_scores.to_csv(
         os.path.join(checkpoint_folder_path,
                      '{}_{}_{}_trackScores.csv'.format(train_model_class, model_config_name, checkpoint_epoch)))
-    agg_track_scores.to_csv(
+    agg_scores.to_csv(
         os.path.join(checkpoint_folder_path,
                      '{}_{}_{}_scores.csv'.format(train_model_class, model_config_name, checkpoint_epoch)))
 
