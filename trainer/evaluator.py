@@ -36,6 +36,7 @@ class Evaluator:
             # accumulate the losses and average the accuracy.
             cum_loss = sum(losses)
             self.losses.append(cum_loss)
+            self.musdb18evaluator.add_current_predictions_to_results()
         self.model.train()
         return cum_loss, self.musdb18evaluator.results.agg_frames_tracks_scores(), \
                self.musdb18evaluator.results.agg_frames_scores()
@@ -106,6 +107,13 @@ class MUSDB18Evaluator:
     def append_results_to_current_track(self, output):
         self.current_output[self.current_instrument].append(output)
 
+    def add_current_predictions_to_results(self):
+        mus_track = self.mus_db.tracks[self.current_track]
+        estimates = {instru: torch.cat(output_list).transpose(0, 1).flatten(1, 2).cpu().numpy()[:,
+                             :len(mus_track)].T for instru, output_list in
+                     self.current_output.items()}
+        self.results.add_track(museval.eval_mus_track(mus_track, estimates))
+
     def add_new_predictions(self, output, track, instrument_ohe):
         # First, validate that the current instrument is initialized.
         self.validate_current_track(track, instrument_ohe)
@@ -121,11 +129,8 @@ class MUSDB18Evaluator:
                 self.append_results_to_current_track(output[same_track_mask])
             # Retrieve the original track from musdb, generate the estimates from the model's output
             # and Evaluate the finished track
-            mus_track = self.mus_db.tracks[self.current_track]
-            estimates = {instru: torch.cat(output_list).transpose(0, 1).flatten(1, 2).cpu().numpy()[:,
-                                 :len(mus_track)].T for instru, output_list in
-                         self.current_output.items()}
-            self.results.add_track(museval.eval_mus_track(mus_track, estimates))
+            self.add_current_predictions_to_results()
+
             # Reset current results
             self.reset_current_results()
             self.validate_current_track(track[~same_track_mask], instrument_ohe[~same_track_mask])
