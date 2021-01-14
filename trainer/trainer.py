@@ -1,10 +1,10 @@
 import torch
 import pathlib
 import datetime
-from trainer.evaluation import Evaluator
-from torch.utils.data import DataLoader
-from utils.functions import is_device_gpu
+from trainer.evaluator import Evaluator
+from utils.functions import get_dataloader_from_dataset
 import os
+
 
 class Trainer:
     def __init__(self, model, spectrogramer, optimizer, loss_function, lr_scheduler, train_dataset,
@@ -28,21 +28,9 @@ class Trainer:
         self.checkpoint_filename = checkpoint_filename
         self.evaluate_during_training = evaluate_during_training
         self.start_epoch = 0
+        self.train_loader = get_dataloader_from_dataset(train_dataset, 'train', device, batch_size)
+        self.validation_loader = get_dataloader_from_dataset(validation_dataset, 'valid', device, batch_size)
 
-        if is_device_gpu(self.device):
-            # pin memory helps improving performance when loading on CPU and sending to GPU
-            self.train_loader = DataLoader(train_dataset, batch_size=batch_size, pin_memory=True, drop_last=True)
-            self.validation_loader = DataLoader(validation_dataset, batch_size=batch_size, pin_memory=True)
-            # Multiple workers for the dataloader
-            # self.train_loader = DataLoader(train_dataset, batch_size=batch_size, prefetch_factor=prefetch_factor,
-            #                                pin_memory=True, num_workers=2)
-            # self.validation_loader = DataLoader(validation_dataset, batch_size=batch_size,
-            #                                     prefetch_factor=prefetch_factor, pin_memory=True, num_workers=2)
-        else:
-            self.train_loader = DataLoader(train_dataset, batch_size=batch_size,
-                                           pin_memory=True, num_workers=1, drop_last=True)
-            self.validation_loader = DataLoader(validation_dataset, batch_size=batch_size,
-                                                pin_memory=True, num_workers=1)
         self.train_dataset = train_dataset
         self.validation_dataset = validation_dataset
         self.evaluator = Evaluator(self.model,
@@ -56,7 +44,7 @@ class Trainer:
 
     def train(self, verbose=False):
         self.log.info("------------Training Started------------")
-        for epoch in range(self.epochs):  # loop over the dataset multiple times
+        for epoch in range(self.start_epoch, self.epochs):  # loop over the dataset multiple times
             self.log.info("!!------------ Epoch {} ------------!!".format(epoch))
             running_loss = 0.0
             for i, data in enumerate(self.train_loader, 0):

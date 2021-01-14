@@ -1,5 +1,6 @@
 import torch
 import museval
+import os
 
 class Evaluator:
     def __init__(self, model, spectrogramer, loss_function, data_loader, musdb_dataset, instruments, device):
@@ -38,6 +39,22 @@ class Evaluator:
         self.model.train()
         return cum_loss, self.musdb18evaluator.results.agg_frames_tracks_scores(), \
                self.musdb18evaluator.results.agg_frames_scores()
+
+    def load_model_checkpoint(self, checkpoint_abs_path):
+        """
+        This function loads a model checkpoint if there is a checkpoint with the models configuration name, otherwise
+        raises an error
+        :return:
+        """
+        if os.path.exists(checkpoint_abs_path):
+            checkpoint = torch.load(checkpoint_abs_path)
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+        else:
+            raise Exception('There is no checkpoint in the specified file, therefore model cannot be evaluated.')
+
+
+
+
 
 class MUSDB18Evaluator:
     def __init__(self, mus_db, instruments):
@@ -131,8 +148,5 @@ class MUSDB18Evaluator:
         # or
         else:
             self.append_results_to_current_track(output)
-
-
-
 
 
