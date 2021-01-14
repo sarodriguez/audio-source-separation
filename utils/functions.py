@@ -1,5 +1,6 @@
 import torch.optim
 from torch import nn
+from torch.utils.data import DataLoader
 
 
 def get_optimizer_class(optimizer_name):
@@ -64,3 +65,19 @@ def is_device_gpu(device: str):
 def get_stft_window(window_type, window_length):
     if window_type == 'hamming':
         return torch.nn.Parameter(torch.hann_window(window_length))
+
+
+def get_dataloader_from_dataset(dataset, subset_split, device, batch_size):
+    if subset_split == 'train':
+        if is_device_gpu(device):
+            # pin memory helps improving performance when loading on CPU and sending to GPU
+            # The drop last flag is used to avoid problems with batch norm on a single observation batch at the end.
+            data_loader = DataLoader(dataset, batch_size=batch_size, pin_memory=True, drop_last=True)
+        else:
+            data_loader = DataLoader(dataset, batch_size=batch_size, pin_memory=True, num_workers=1, drop_last=True)
+    else:
+        if is_device_gpu(device):
+            data_loader = DataLoader(dataset, batch_size=batch_size, pin_memory=True)
+        else:
+            data_loader = DataLoader(dataset, batch_size=batch_size, pin_memory=True, num_workers=1)
+    return data_loader
