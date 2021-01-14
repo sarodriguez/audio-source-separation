@@ -53,9 +53,6 @@ class Evaluator:
             raise Exception('There is no checkpoint in the specified file, therefore model cannot be evaluated.')
 
 
-
-
-
 class MUSDB18Evaluator:
     def __init__(self, mus_db, instruments):
         self.current_output = dict()
