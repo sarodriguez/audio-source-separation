@@ -8,6 +8,7 @@ from trainer.evaluator import Evaluator
 from models.cunet import ConditionedUNet
 from utils.functions import get_optimizer_class, get_lr_scheduler_class, get_loss_function, get_device, get_dataloader_from_dataset
 from utils.spectrogram import Spectrogramer
+import torch
 
 def main():
     # Setup the log
@@ -75,9 +76,19 @@ def main():
                           device)
     evaluator.load_model_checkpoint(os.path.join(checkpoint_folder_path, checkpoint_filename))
 
+    checkpoint = torch.load(os.path.join(checkpoint_folder_path, checkpoint_filename))
+    checkpoint_epoch = checkpoint['epoch']
     # Start trainer/evaluation
     log.info("Evaluation on the {} dataset split has started.".format(evaluate_dataset))
-    evaluator.evaluate()
+    cum_loss, agg_track_scores, agg_scores = evaluator.evaluate()
+    agg_track_scores.to_csv(
+        os.path.join(checkpoint_folder_path,
+                     '{}_{}_{}_trackScores.csv'.format(train_model_class, model_config_name, checkpoint_epoch)))
+    agg_track_scores.to_csv(
+        os.path.join(checkpoint_folder_path,
+                     '{}_{}_{}_scores.csv'.format(train_model_class, model_config_name, checkpoint_epoch)))
+
+
 
 
 if __name__ == '__main__':
