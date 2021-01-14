@@ -42,10 +42,13 @@ def main():
     train_model_class = train_model_config.pop('class')
     model = eval(train_model_class)(**train_model_config)
 
+
+
     # Setup trainer
     checkpoint_folder_path = config.CHECKPOINT_FOLDER_PATH
     epochs = config.EPOCHS
     checkpoint_frequency = config.CHECKPOINT_FREQUENCY
+    checkpoint_filename = config.CHECKPOINT_FILENAME
     logging_frequency = config.LOGGING_FREQUENCY
     optimizer_class = get_optimizer_class(config.OPTIMIZER)
     optimizer_params = config.OPTIMIZER_PARAMS
@@ -57,6 +60,7 @@ def main():
     gpu = config.GPU
     gpu_device = config.GPU_DEVICE
     device = get_device(gpu, gpu_device)
+    evaluate_during_training = config.EVALUATE_DURING_TRAINING
 
     if not os.path.isdir(checkpoint_folder_path):
         os.mkdir(checkpoint_folder_path)
@@ -73,7 +77,10 @@ def main():
     # Initialize traininer
     trainer = Trainer(model, spectrogramer, optimizer, loss_function, lr_scheduler, train_dataset,
                       validation_dataset, log, checkpoint_folder_path, epochs, logging_frequency, checkpoint_frequency,
-                      batch_size, prefetch_factor, instruments, train_model_class, device)
+                      batch_size, prefetch_factor, instruments, train_model_class, device, checkpoint_filename,
+                      evaluate_during_training)
+
+
     # Start trainer/evaluation
     trainer.train()
 

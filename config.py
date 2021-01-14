@@ -47,10 +47,17 @@ class config(effortless_config.Config):
     LR_SCHEDULER = 'cosine_annealing'
     LR_SCHEDULER_PARAMS = dict(T_max=EPOCHS)
     CHECKPOINT_FOLDER_PATH = r'C:\Proy\sound-source-separation\logscheckpoints'
+    # Continue training from an exisiting checkpoint, if the file does not exist, training will start from scratch
+    # The last checkpoint will be stored in the same path, historical checkpoints will be saved with a different
+    # name that includes the model configuration name and the current timestamp.
+    CHECKPOINT_FILENAME = 'ConditionedUNet.pt'
     # How many batch iterations between one log message of the current Loss
     LOGGING_FREQUENCY = 3000
     # How many epochs between one network backup and another
     CHECKPOINT_FREQUENCY = 10
+    # This determines if the model should be evaluated during training or not. If true, the evaluation results df
+    # will be stored with every created checkpoint
+    EVALUATE_DURING_TRAINING = False
     """
     model parameters    
     """

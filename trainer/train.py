@@ -4,11 +4,13 @@ import datetime
 from trainer.evaluation import Evaluator
 from torch.utils.data import DataLoader
 from utils.functions import is_device_gpu
+import os
 
 class Trainer:
     def __init__(self, model, spectrogramer, optimizer, loss_function, lr_scheduler, train_dataset,
                  validation_dataset, log, checkpoint_folder_path, epochs, logging_frequency, checkpoint_frequency,
-                 batch_size, prefetch_factor, instruments, model_configuration_name, device):
+                 batch_size, prefetch_factor, instruments, model_configuration_name, device, checkpoint_filename,
+                 evaluate_during_training):
         self.model = model.to(device)
         self.spectrogramer = spectrogramer
         self.optimizer = optimizer
@@ -23,6 +25,9 @@ class Trainer:
         self.instruments = instruments
         self.model_configuration_name = model_configuration_name
         self.device = device
+        self.checkpoint_filename = checkpoint_filename
+        self.evaluate_during_training = evaluate_during_training
+        self.start_epoch = 0
 
         if is_device_gpu(self.device):
             # pin memory helps improving performance when loading on CPU and sending to GPU
@@ -47,6 +52,7 @@ class Trainer:
                                    self.validation_dataset,
                                    self.instruments,
                                    self.device)
+        self.load_model_checkpoint()
 
     def train(self, verbose=False):
         self.log.info("------------Training Started------------")
@@ -84,7 +90,7 @@ class Trainer:
                     running_loss = 0.0
 
             if (epoch % self.checkpoint_frequency) == (self.checkpoint_frequency - 1):
-                self.create_checkpoint(epoch)
+                self.create_checkpoint(epoch + 1)
         if not (self.epochs % self.checkpoint_frequency) == 0:
             self.create_checkpoint(self.epochs, training_losses=self.losses)
         self.log.info('------------Training Finished------------')
@@ -95,18 +101,22 @@ class Trainer:
                                            "{}_{}_{}.pt".format(self.model_configuration_name, int(epoch),
                                                                 utc0_now_str))
         self.log.info('Creating Checkpoint for Epoch {}. Checkpoint location: {}'.format(epoch, checkpoint_filepath))
-        val_loss, val_track_scores_df, val_scores_df = self.evaluator.evaluate()
         checkpoint_dict = {
             'epoch': epoch,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
-            'val_loss': val_loss,
-            'val_track_scores_df': val_track_scores_df,
-            'val_scores_df': val_scores_df
         }
         if training_losses is not None:
             checkpoint_dict['training_losses'] = training_losses
+        if self.evaluate_during_training:
+            val_loss, val_track_scores_df, val_scores_df = self.evaluator.evaluate()
+            checkpoint_dict['val_loss']: val_loss
+            checkpoint_dict['val_track_scores_df']: val_track_scores_df
+            checkpoint_dict['val_scores_df']: val_scores_df
+        # Saves checkpoint in a file with unique name, in case we want to access this specific version of the model
         torch.save(checkpoint_dict, checkpoint_filepath)
+        # Saves checkpoint in the generic file that contains the latest checkpoint available.
+        torch.save(checkpoint_dict, os.path.join(self.checkpoint_folder_path, self.checkpoint_filename))
         self.log.info('Checkpoint successful for Epoch {}. Checkpoint location: {}'.format(epoch, checkpoint_filepath))
 
     def get_loss_historic(self):
@@ -114,3 +124,21 @@ class Trainer:
 
     def get_results(self):
         return self.evaluator.musdb18evaluator.get_results_df()
+
+    def load_model_checkpoint(self):
+        """
+        This function loads a model checkpoint if there is a checkpoint with the models configuration name
+        :return:
+        """
+        checkpoint_abs_path = os.path.join(self.checkpoint_folder_path, self.checkpoint_filename)
+        if os.path.exists(checkpoint_abs_path):
+            checkpoint = torch.load(checkpoint_abs_path)
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            self.start_epoch = checkpoint['epoch']
+            self.log.info('Loaded {} model. Starting from the '
+                          'epoch number {}. Checkpoint path: {}'.format(self.model_configuration_name,
+                                                                        self.start_epoch, checkpoint_abs_path))
+            self.model.train()
+        else:
+            self.log.info('No checkpoint found at {}. Training will start from scratch.'.format(checkpoint_abs_path))
