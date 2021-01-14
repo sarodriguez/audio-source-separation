@@ -29,7 +29,7 @@ def main():
                                             subset_split='valid')
     log.info("Loaded Training dataset with a total of {} samples, from the path: {}".format(len(train_dataset.mus),
                                                                                             musdbwav_path))
-    log.info("Loaded Validation dataset with a total of {} samples, from the path: {}".format(len(train_dataset.mus),
+    log.info("Loaded Validation dataset with a total of {} samples, from the path: {}".format(len(validation_dataset.mus),
                                                                                               musdbwav_path))
 
     # Setup model
