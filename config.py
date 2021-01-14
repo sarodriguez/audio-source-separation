@@ -68,6 +68,6 @@ class config(effortless_config.Config):
     """
     Evaluation parameters, only used in the evaluate script.
     """
-    # This parameter indicates which dataset to use for evaluation, either test or validation.
-    EVALUATE_DATASET = effortless_config.setting(default='test', validation='valid', test='test')
+    # This parameter indicates which dataset to use for evaluation, either 'test' or 'valid'
+    EVALUATE_DATASET = 'valid'
 
