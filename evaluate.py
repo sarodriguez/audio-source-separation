@@ -34,8 +34,6 @@ def main():
     train_model_class = train_model_config.pop('class')
     model = eval(train_model_class)(**train_model_config)
 
-
-
     # Setup trainer
     checkpoint_folder_path = config.CHECKPOINT_FOLDER_PATH
     checkpoint_filename = config.CHECKPOINT_FILENAME
@@ -43,7 +41,6 @@ def main():
     gpu = config.GPU
     gpu_device = config.GPU_DEVICE
     device = get_device(gpu, gpu_device)
-
 
     # Setup the spectrogram
     spectrogram_type = config.SPECTROGRAM_TYPE
@@ -54,7 +51,6 @@ def main():
 
     spectrogramer = Spectrogramer(spectrogram_type, n_fft, hop_length, window, window_length, device)
 
-
     # Evaluation parameters
     evaluate_dataset = config.EVALUATE_DATASET
 
@@ -63,14 +59,12 @@ def main():
         dataset = TestMUSDB18Dataset(musdbwav_path, instruments, sample_length=audio_samples_per_chunk,
                                      subset_split=evaluate_dataset)
         dataloader = get_dataloader_from_dataset(dataset,evaluate_dataset,device, batch_size)
+        log.info(
+            "Loaded {} dataset with a total of {} samples, from the path: {}".format(evaluate_dataset, len(dataset.mus),
+                                                                                     musdbwav_path))
     else:
         raise Exception('The dataset for evaluation should be either test or valid.')
-    train_dataset = TrainMUSDB18Dataset(musdbwav_path, instruments, sample_length=audio_samples_per_chunk)
 
-    log.info("Loaded Training dataset with a total of {} samples, from the path: {}".format(len(train_dataset.mus),
-                                                                                            musdbwav_path))
-    log.info("Loaded Validation dataset with a total of {} samples, from the path: {}".format(len(train_dataset.mus),
-                                                                                              musdbwav_path))
     # Initialize evaluator
     evaluator = Evaluator(model,
                           spectrogramer,
@@ -82,7 +76,7 @@ def main():
     evaluator.load_model_checkpoint(os.path.join(checkpoint_folder_path, checkpoint_filename))
 
     # Start trainer/evaluation
-    log.info("Evaluation on the {} dataset split has started.")
+    log.info("Evaluation on the {} dataset split has started.".format(evaluate_dataset))
     evaluator.evaluate()
 
 
