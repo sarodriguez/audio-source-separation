@@ -73,6 +73,12 @@ class TestMUSDB18Dataset(MUSDB18Dataset):
         self.cum_chunks = np.cumsum(self.chunks_per_track)
         # We also initialize the 'mapper' from id to track + offset within a track
 
+        self.current_mixture = None
+        self.current_mixture_index = None
+        self.current_target = None
+        self.current_target_index = None
+        self.current_target_instrument = None
+
     def get_instrument_track_and_offset(self, chunk_index):
         # Chunk index is a single number that should be able to index across all the different instruments for
         # all the tracks.
@@ -103,12 +109,15 @@ class TestMUSDB18Dataset(MUSDB18Dataset):
 
         # Retrieve the array that contains the audio
         instrument_name = self.instruments[instrument_index]
-        target_audio_chunk = self.mus.tracks[track_index].targets[instrument_name].audio[track_offset:
-                                                                                          track_offset +
-                                                                                          self.sample_length]
-        mixture_audio_chunk = self.mus.tracks[track_index].targets['linear_mixture'].audio[track_offset:
-                                                                                           track_offset +
-                                                                                           self.sample_length]
+        target_audio_chunk = self.get_target(track_index, instrument_name, track_offset,
+                                             track_offset + self.sample_length)
+        mixture_audio_chunk = self.get_mixture(track_index, track_offset, track_offset + self.sample_length)
+        # target_audio_chunk = self.mus.tracks[track_index].targets[instrument_name].audio[track_offset:
+        #                                                                                  track_offset +
+        #                                                                                  self.sample_length]
+        # mixture_audio_chunk = self.mus.tracks[track_index].targets['linear_mixture'].audio[track_offset:
+        #                                                                                    track_offset +
+        #                                                                                    self.sample_length]
         # If the chunk is smaller than the pre established sample_length, then we pad the array with zeros
         # until it matches the size of sample_length
         if (target_audio_chunk.shape[0] != self.sample_length) and (mixture_audio_chunk.shape[0] != self.sample_length):
@@ -123,18 +132,15 @@ class TestMUSDB18Dataset(MUSDB18Dataset):
         return torch.FloatTensor(mixture_audio_chunk.T), torch.FloatTensor(target_audio_chunk.T), \
                torch.FloatTensor(instrument_ohe), track_index, track_offset
 
-    def get_random_audio(self, instrument):
-        """
-        Get a random audio array, following the dataset's sample length, for the given instrument
-        :param instrument:
-        :return: np.array with the raw audio waveforms
-        """
-        # We get a random track
-        rand_track = np.random.randint(0, len(self))
-        # Then a random starting position within this random track
-        rand_start = np.random.randint(0, len(self.mus[rand_track]) - self.sample_length + 1)
+    def get_mixture(self, track_index, audio_start_index, audio_end_index):
+        if track_index != self.current_mixture_index:
+            self.current_mixture = self.mus.tracks[track_index].targets['linear_mixture'].audio
+            self.current_mixture_index = track_index
+        return self.current_mixture[audio_start_index:audio_end_index]
 
-        audio, sample_rate = soundfile.read(self.mus.tracks[rand_track].sources[instrument].path, start=rand_start,
-                                            stop=rand_start + self.sample_length)
-        return audio
-
+    def get_target(self, track_index, instrument_name, audio_start_index, audio_end_index):
+        if instrument_name != self.current_target_instrument or track_index != self.current_mixture_index:
+            self.current_target = self.mus.tracks[track_index].targets[instrument_name].audio
+            self.current_target_instrument = instrument_name
+            self.current_target_index = track_index
+        return self.current_target[audio_start_index:audio_end_index]
