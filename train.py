@@ -9,6 +9,7 @@ from models.cunet import ConditionedUNet
 from utils.functions import get_optimizer_class, get_lr_scheduler_class, get_loss_function, get_device
 from utils.spectrogram import Spectrogramer
 
+
 def main():
     # Setup the log
     log_filename = config.LOG_FILENAME
@@ -29,8 +30,9 @@ def main():
                                             subset_split='valid')
     log.info("Loaded Training dataset with a total of {} samples, from the path: {}".format(len(train_dataset.mus),
                                                                                             musdbwav_path))
-    log.info("Loaded Validation dataset with a total of {} samples, from the path: {}".format(len(validation_dataset.mus),
-                                                                                              musdbwav_path))
+    log.info(
+        "Loaded Validation dataset with a total of {} samples, from the path: {}".format(len(validation_dataset.mus),
+                                                                                         musdbwav_path))
 
     # Setup model
     model_config_path = config.MODEL_CONFIG_YAML_PATH
@@ -41,8 +43,6 @@ def main():
     train_model_config = model_configurations[model_config_name]
     train_model_class = train_model_config.pop('class')
     model = eval(train_model_class)(**train_model_config)
-
-
 
     # Setup trainer
     checkpoint_folder_path = config.CHECKPOINT_FOLDER_PATH
@@ -79,7 +79,6 @@ def main():
                       validation_dataset, log, checkpoint_folder_path, epochs, logging_frequency, checkpoint_frequency,
                       batch_size, prefetch_factor, instruments, train_model_class, device, checkpoint_filename,
                       evaluate_during_training)
-
 
     # Start trainer/evaluation
     trainer.train()
