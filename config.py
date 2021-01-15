@@ -63,7 +63,7 @@ class config(effortless_config.Config):
     """
     MODEL_CONFIG_YAML_PATH = 'model_config.yaml'
     # this is the model configuration that is going to be trained,
-    MODEL_CONFIGURATION = 'default'
+    MODEL_CONFIGURATION = 'embedding'
 
     """
     Evaluation parameters, only used in the evaluate script.
