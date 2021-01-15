@@ -48,6 +48,7 @@ class ConditionedUNet(nn.Module):
             self.control = nn.Embedding(n_instruments, embedding_dim=control_embedding_dimension)
         else:
             raise NotImplementedError
+        self.control_type = control_type
 
         # Defining the encoder components
         encoder_in_channels = [n_input_audio_channels] + encoderdecoder_channels[:-1]
@@ -76,6 +77,9 @@ class ConditionedUNet(nn.Module):
 
     def forward(self, X, condition):
         # First we go through the control mechanism, to create an 'embedding' of the input condition(source)
+        if self.control_type == 'embedding':
+            # If using the embedding control type then the ohe condition is transformed into a label version
+            condition = torch.argmax(condition, dim=1)
         z = self.control(condition)
         # Then we iterate over the different encoder layers
         encoder_outputs = list()
