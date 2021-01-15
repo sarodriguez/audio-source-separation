@@ -36,6 +36,8 @@ def get_loss_function(loss_function_name):
     loss_function_name = loss_function_name.lower()
     if loss_function_name in ('mean_absolute_error', 'l1loss'):
         return nn.L1Loss()
+    elif loss_function_name == 'mean_squared_error':
+        return nn.MSELoss()
     else:
         raise NotImplementedError
 
